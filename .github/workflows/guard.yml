@@ -23,8 +23,9 @@ jobs:
         run: |
           CHANGED=$(git diff --name-only "$BASE" "$HEAD")
           echo "Fichiers modifiés :"; echo "$CHANGED"
-          PROTECTED='^(\.github/|CODEOWNERS$)'
-          BAD=$(echo "$CHANGED" | grep -E "$PROTECTED" || true)
+          # Bloque .github/** et CODEOWNERS aux 3 emplacements GitHub (racine, .github/, docs/),
+          # insensible à la casse (macOS). GitHub honore CODEOWNERS dans ces 3 dossiers.
+          BAD=$(echo "$CHANGED" | grep -iE '^\.github/|(^|/)codeowners$' || true)
           if [ -n "$BAD" ]; then
             echo "::error::Modification de garde-fous (workflows / CODEOWNERS) — refusée :"
             echo "$BAD"
