@@ -1,0 +1,7 @@
+# openwebpublic — zone malléable.
+# main est protégé : les PR (agent IA) sont mergées seulement après le review gate,
+# par un déployeur/mainteneur de confiance — jamais par l'agent lui-même.
+
+*                 @AzraeDomilite
+/.github/         @AzraeDomilite
+/CODEOWNERS       @AzraeDomilite
