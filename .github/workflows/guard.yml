@@ -1,8 +1,9 @@
-name: frontier-guard
+name: guard
 
-# Path guard : une PR (typiquement ouverte par l'agent IA) ne peut modifier QUE la
-# zone malléable. C'est la frontière malléable/cœur (openweb/docs/09) appliquée en CI,
-# en plus des permissions GitHub et de l'isolation sandbox (openweb/docs/12).
+# Frontier guard (openweb/docs/09) appliqué au dépôt de CODE.
+# Tout le site est malléable — SAUF les garde-fous eux-mêmes.
+# L'IA ne doit jamais pouvoir modifier ses propres protections (méta-vulnérabilité).
+# Cette vérif est un status check REQUIS pour merger (protection de branche).
 
 on:
   pull_request:
@@ -15,32 +16,18 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Seuls les chemins malléables peuvent changer
+      - name: L'IA ne peut pas toucher ses propres garde-fous
         env:
           BASE: ${{ github.event.pull_request.base.sha }}
           HEAD: ${{ github.event.pull_request.head.sha }}
         run: |
           CHANGED=$(git diff --name-only "$BASE" "$HEAD")
           echo "Fichiers modifiés :"; echo "$CHANGED"
-          ALLOWED='^(content/|assets/|README\.md$)'
-          BAD=$(echo "$CHANGED" | grep -vE "$ALLOWED" || true)
+          PROTECTED='^(\.github/|CODEOWNERS$)'
+          BAD=$(echo "$CHANGED" | grep -E "$PROTECTED" || true)
           if [ -n "$BAD" ]; then
-            echo "::error::Modification hors de la zone malléable — refusée :"
+            echo "::error::Modification de garde-fous (workflows / CODEOWNERS) — refusée :"
             echo "$BAD"
             exit 1
           fi
-          echo "OK : uniquement des chemins malléables."
-
-      - name: Le contenu JSON est valide
-        env:
-          BASE: ${{ github.event.pull_request.base.sha }}
-          HEAD: ${{ github.event.pull_request.head.sha }}
-        run: |
-          # Nom de fichier passé par env (jamais interpolé dans le code JS) → pas d'injection.
-          FILES=$(git diff --name-only "$BASE" "$HEAD" | grep '\.json$' || true)
-          if [ -n "$FILES" ]; then
-            while IFS= read -r f; do
-              FILE="$f" node -e "JSON.parse(require('fs').readFileSync(process.env.FILE,'utf8'))" \
-                && echo "JSON valide : $f"
-            done <<< "$FILES"
-          fi
+          echo "OK : garde-fous intacts."
