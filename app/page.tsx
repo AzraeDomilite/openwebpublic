@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import sections from '@/content/sections.json';
 
 type Section = { heading: string; body: string };
@@ -16,6 +17,9 @@ export default function Page() {
           <p style={{ margin: 0, color: '#333' }}>{s.body}</p>
         </section>
       ))}
+      <p style={{ borderTop: '1px solid #eee', padding: '20px 0 0', margin: 0 }}>
+        <Link href="/faq" style={{ color: '#0066cc' }}>Consulter la FAQ →</Link>
+      </p>
     </main>
   );
 }
